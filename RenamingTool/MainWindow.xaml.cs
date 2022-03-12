@@ -199,7 +199,7 @@ namespace RenamingTool
                 return;
 
             // Reset flags
-            var duplicatedRecords = editedRecords.Where(r => r.Duplicated);
+            var duplicatedRecords = _viewModel.Records.Where(r => r.Duplicated);
             foreach (var r in duplicatedRecords)
             {
                 r.Duplicated = false;
