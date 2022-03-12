@@ -393,9 +393,9 @@ namespace RenamingTool
             {
                 DataGrid.EndInit();
                 DataGrid.View.Refresh();
+                _viewModel.ThumbnailEnabled = false;
+                _viewModel.EditedItemsCount = 0;
             }
-
-
         }
 
         private void RenameAndCloseMenuItem_OnClick(object sender, RoutedEventArgs e)
