@@ -23,6 +23,7 @@
     AllowDrop="True"
     Closed="MainWindow_OnClosed"
     Drop="MainWindow_OnDrop"
+    Icon="Assets/rename.png"
     ShowTitle="True"
     UseNativeChrome="True"
     mc:Ignorable="d">

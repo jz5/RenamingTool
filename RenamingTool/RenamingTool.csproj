@@ -23,8 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Assets\rename.ico" />
-    <Content Include="Assets\rename.png" />
+    <Resource Include="Assets\rename.ico" />
+    <Resource Include="Assets\rename.png" />
   </ItemGroup>
 
   <ItemGroup>
