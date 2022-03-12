@@ -1,0 +1,14 @@
+﻿<Application
+    x:Class="RenamingTool.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Startup="App_OnStartup">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/FilterStatusBar.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <FontFamily x:Key="SegoeFluentIcons">pack://application:,,,/Assets/Segoe Fluent Icons.ttf</FontFamily>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,634 @@
+﻿<syncfusion:ChromelessWindow
+    x:Class="RenamingTool.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:calcBinding="clr-namespace:CalcBinding;assembly=CalcBinding"
+    xmlns:collections="clr-namespace:System.Collections;assembly=System.Runtime"
+    xmlns:controls="clr-namespace:RenamingTool.Controls"
+    xmlns:converters="clr-namespace:RenamingTool.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:io="clr-namespace:System.IO;assembly=System.Runtime"
+    xmlns:local="clr-namespace:RenamingTool"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+    xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
+    xmlns:viewModels="clr-namespace:RenamingTool.ViewModels"
+    Title="{Binding RecordsCount, StringFormat='ファイル名の変更 (対象: {0}件)'}"
+    Width="1280"
+    Height="800"
+    MinWidth="300"
+    MinHeight="300"
+    d:DataContext="{d:DesignInstance viewModels:MainWindowViewModel,
+                                     IsDesignTimeCreatable=True}"
+    AllowDrop="True"
+    Closed="MainWindow_OnClosed"
+    Drop="MainWindow_OnDrop"
+    ShowTitle="True"
+    UseNativeChrome="True"
+    mc:Ignorable="d">
+
+    <syncfusion:ChromelessWindow.Resources>
+        <converters:StringToImageConverter x:Key="StringToImageConverter" />
+        <converters:IconConverter x:Key="IconConverter" />
+        <converters:EnumDisplayNameConverter x:Key="EnumDisplayNameConverter" />
+
+        <!--<Style x:Key="CellStyle" TargetType="syncfusion:GridCell">
+            <Setter Property="FontSize" Value="{Binding DataContext.CellFontSize, ElementName=DataGrid}" />
+        </Style>-->
+    </syncfusion:ChromelessWindow.Resources>
+    <Grid>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <TabControl TabStripPlacement="Top">
+                <TabItem Width="98">
+                    <TabItem.Header>
+                        <TextBlock
+                            Cursor="Hand"
+                            FontFamily="/Assets/#Segoe Fluent Icons"
+                            Text="&#xe80f;"
+                            ToolTip="ホーム" />
+                    </TabItem.Header>
+                    <Grid Margin="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid>
+                            <!--<TextBlock
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"
+                                Opacity="0.8"
+                                Text="プレビュー">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Source, ElementName=PreviewImage}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>-->
+                            <Image
+                                x:Name="PreviewImage"
+                                Height="160"
+                                Source="{Binding ElementName=DataGrid, Path=SelectedItem.FullPath, Converter={StaticResource StringToImageConverter}, ConverterParameter=200}"
+                                Stretch="Uniform" />
+                        </Grid>
+
+                        <StackPanel Grid.Row="2">
+                            <!--<Button
+                                x:Name="ClearButton"
+                                Grid.Row="2"
+                                Padding="8,4"
+                                HorizontalAlignment="Stretch"
+                                Click="">
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="/Assets/#Segoe Fluent Icons"
+                                            FontSize="16"
+                                            Text="&#xe74d;" />
+                                        <TextBlock
+                                            Padding="0,0,0,1"
+                                            VerticalAlignment="Center"
+                                            FontSize="14"
+                                            Text="全削除" />
+                                    </StackPanel>
+                                </Button.Content>
+                            </Button>-->
+
+                            <syncfusion:SplitButtonAdv
+                                x:Name="RenameSplitButton"
+                                Padding="8"
+                                HorizontalAlignment="Stretch"
+                                Click="RenameSplitButton_OnClick"
+                                DropDirection="BottomRight"
+                                FontSize="14"
+                                Label="{Binding EditedItemsCount, StringFormat='名前の変更 ({0}件)'}">
+                                <syncfusion:SplitButtonAdv.IconTemplate>
+                                    <DataTemplate>
+                                        <TextBlock
+                                            Width="16"
+                                            Margin="0,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="/Assets/#Segoe Fluent Icons"
+                                            FontSize="16"
+                                            Text="&#xe8ac;" />
+                                    </DataTemplate>
+                                </syncfusion:SplitButtonAdv.IconTemplate>
+                                <syncfusion:DropDownMenuGroup>
+                                    <syncfusion:DropDownMenuItem
+                                        Height="40"
+                                        Click="RenameAndCloseMenuItem_OnClick"
+                                        FontSize="14"
+                                        Header="変更して閉じる" />
+                                    <Separator />
+
+                                    <syncfusion:DropDownMenuItem
+                                        Height="40"
+                                        Click="ResetMenuItem_OnClick"
+                                        FontSize="14"
+                                        Header="すべての編集をリセット" />
+                                    <syncfusion:DropDownMenuItem
+                                        Height="40"
+                                        Click="DeleteMenuItem_OnClick"
+                                        FontSize="14"
+                                        Header="すべてリストから削除">
+                                        <!--<syncfusion:DropDownMenuItem.Icon>
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                FontFamily="/Assets/#Segoe Fluent Icons"
+                                                FontSize="16"
+                                                Text="&#xe74d;" />
+                                        </syncfusion:DropDownMenuItem.Icon>-->
+                                    </syncfusion:DropDownMenuItem>
+                                </syncfusion:DropDownMenuGroup>
+                            </syncfusion:SplitButtonAdv>
+
+                            <!--<Button
+                                x:Name="RenameButton"
+                                Margin="0,32,0,0"
+                                Padding="8"
+                                HorizontalAlignment="Stretch"
+                                Click="RenameButton_OnClick">
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="/Assets/#Segoe Fluent Icons"
+                                            FontSize="16"
+                                            Text="&#xe8ac;" />
+                                        <TextBlock
+                                            Padding="0,0,0,1"
+                                            VerticalAlignment="Center"
+                                            FontSize="14"
+                                            Text="{Binding EditedItemsCount, StringFormat='名前の変更 ({0}件)'}" />
+
+                                    </StackPanel>
+                                </Button.Content>
+                            </Button>-->
+                        </StackPanel>
+
+
+                    </Grid>
+                </TabItem>
+                <TabItem Width="98">
+                    <TabItem.Header>
+                        <TextBlock
+                            Cursor="Hand"
+                            FontFamily="/Assets/#Segoe Fluent Icons"
+                            Text="&#xe713;"
+                            ToolTip="設定" />
+                    </TabItem.Header>
+                    <StackPanel Margin="0">
+
+
+                        <GroupBox
+                            Margin="8"
+                            Padding="4"
+                            Header="動作">
+                            <StackPanel>
+                                <Label Content="編集開始時のカーソル" />
+                                <ComboBox
+                                    x:Name="EditorSelectionBehaviorComboBox"
+                                    Height="24"
+                                    Margin="0,2,0,0"
+                                    ItemsSource="{converters:EnumValues Type=syncfusion:EditorSelectionBehavior}"
+                                    SelectedIndex="0">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock VerticalAlignment="Center" Text="{Binding Converter={StaticResource EnumDisplayNameConverter}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+
+
+
+                            </StackPanel>
+                        </GroupBox>
+                        <GroupBox
+                            Margin="8"
+                            Padding="4"
+                            Header="検索条件">
+                            <StackPanel>
+                                <Label Margin="0,8,0,0" Content="検索パターン" />
+                                <TextBox Height="24" Text="{Binding SearchPattern}" />
+
+                                <Label Margin="0,8,0,0" Content="検索場所" />
+                                <ComboBox
+                                    x:Name="ComboBox"
+                                    Height="24"
+                                    Margin="0,2,0,0"
+                                    ItemsSource="{converters:EnumValues Type=io:SearchOption}"
+                                    SelectedItem="{Binding SearchOption}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock VerticalAlignment="Center" Text="{Binding Converter={StaticResource EnumDisplayNameConverter}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+
+                                <CheckBox
+                                    Margin="0,20,0,0"
+                                    Content="隠しファイルを含める"
+                                    IsChecked="{Binding IncludesHiddenFiles}" />
+                                <CheckBox
+                                    Margin="0,8,0,0"
+                                    Content="読み取り専用ファイルを含める"
+                                    IsChecked="{Binding IncludesReadOnlyFiles}" />
+                            </StackPanel>
+                        </GroupBox>
+                        <GroupBox
+                            Margin="8"
+                            Padding="4"
+                            Header="デザイン">
+                            <StackPanel>
+
+                                <Label Content="行の高さ" />
+                                <syncfusion:UpDown
+                                    Height="24"
+                                    MaxValue="100"
+                                    MinValue="5"
+                                    NumberDecimalDigits="0"
+                                    Value="{Binding ElementName=DataGrid, Path=RowHeight}" />
+
+                                <!--<Label Content="フォントサイズ" />
+                                <syncfusion:UpDown
+                                    Height="24"
+                                    MaxValue="30"
+                                    MinValue="5"
+                                    NumberDecimalDigits="0"
+                                    Value="{Binding CellFontSize}" />-->
+
+
+                                <Button
+                                    x:Name="SwitchThemeButton"
+                                    Margin="0,8,0,0"
+                                    Padding="8"
+                                    Click="SwitchThemeButton_OnClick"
+                                    Content="テーマ切り替え" />
+
+                                <Button
+                                    x:Name="ResetColumnsButton"
+                                    Margin="0,8,0,0"
+                                    Padding="8"
+                                    Click="ResetColumnsButton_OnClick"
+                                    Content="カラム幅・順序のリセット" />
+                            </StackPanel>
+                        </GroupBox>
+
+                        <Label Margin="8">
+
+                            <Hyperlink
+                                NavigateUri="https://pronama.jp/renaming-tool"
+                                RequestNavigate="Hyperlink_OnRequestNavigate"
+                                TextDecorations="None">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontFamily="/Assets/#Segoe Fluent Icons"
+                                    Text="&#xe897;" />
+                                <TextBlock Text="ヘルプ" />
+                            </Hyperlink>
+                        </Label>
+
+                    </StackPanel>
+                </TabItem>
+            </TabControl>
+
+
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+
+                <syncfusion:SfDataGrid
+                    x:Name="DataGrid"
+                    AllowDraggingColumns="True"
+                    AllowResizingColumns="True"
+                    AllowSorting="True"
+                    AllowTriStateSorting="True"
+                    AutoGenerateColumns="False"
+                    ColumnSizer="Auto"
+                    CurrentCellActivated="DataGrid_OnCurrentCellActivated"
+                    CurrentCellBeginEdit="DataGrid_OnCurrentCellBeginEdit"
+                    CurrentCellEndEdit="DataGrid_OnCurrentCellEndEdit"
+                    EditorSelectionBehavior="{Binding SelectedValue, ElementName=EditorSelectionBehaviorComboBox}"
+                    FilterRowPosition="FixedTop"
+                    GridCopyOption="CopyData"
+                    GridPasteOption="PasteData"
+                    ItemsSource="{Binding Records}"
+                    PasteGridCellContent="DataGrid_OnPasteGridCellContent"
+                    SelectionMode="Extended"
+                    SelectionUnit="Cell">
+                    <syncfusion:SfDataGrid.RecordContextMenu>
+                        <ContextMenu>
+                            <MenuItem
+                                Command="{Binding Source={x:Static Member=local:ContextMenuCommands.Copy}}"
+                                CommandParameter="{Binding}"
+                                Header="コピー">
+                                <MenuItem.Icon>
+
+                                    <TextBlock
+                                        FontFamily="/Assets/#Segoe Fluent Icons"
+                                        FontSize="16"
+                                        Text="&#xe8c8;" />
+
+
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem
+                                Command="{Binding Source={x:Static Member=local:ContextMenuCommands.Paste}}"
+                                CommandParameter="{Binding}"
+                                Header="貼り付け">
+                                <MenuItem.Icon>
+                                    <TextBlock
+                                        FontFamily="/Assets/#Segoe Fluent Icons"
+                                        FontSize="16"
+                                        Text="&#xe77f;" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </ContextMenu>
+                    </syncfusion:SfDataGrid.RecordContextMenu>
+                    <syncfusion:SfDataGrid.Columns>
+                        <syncfusion:GridImageColumn
+                            AllowSorting="False"
+                            ColumnSizer="SizeToHeader"
+                            FilterRowOptionsVisibility="Collapsed"
+                            HeaderText="サムネイル"
+                            Stretch="Uniform"
+                            TextAlignment="Center"
+                            ValueBinding="{Binding ThumbnailPath, Converter={StaticResource StringToImageConverter}}">
+
+                            <syncfusion:GridImageColumn.HeaderTemplate>
+                                <DataTemplate>
+
+                                    <CheckBox
+                                        x:Name="ThumbnailCheckBox"
+                                        Click="ThumbnailCheckBox_OnClick"
+                                        Content="サムネイル"
+                                        Cursor="Hand"
+                                        FontWeight="DemiBold"
+                                        IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.ThumbnailEnabled}" />
+                                </DataTemplate>
+                            </syncfusion:GridImageColumn.HeaderTemplate>
+
+                        </syncfusion:GridImageColumn>
+                        <syncfusion:GridTextColumn
+                            AllowBlankFilters="False"
+                            ColumnSizer="None"
+                            HeaderText="フォルダー"
+                            MappingName="FolderPath" />
+
+                        <syncfusion:GridTemplateColumn
+                            Padding="2"
+                            AllowBlankFilters="False"
+                            HeaderText="元の名前"
+                            MappingName="OriginalName">
+                            <syncfusion:GridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="15" />
+                                            <ColumnDefinition />
+                                        </Grid.ColumnDefinitions>
+                                        <Image
+                                            Grid.Column="0"
+                                            Width="16"
+                                            Height="16"
+                                            Source="{Binding FullPath, Converter={StaticResource IconConverter}}" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Padding="4"
+                                            VerticalAlignment="Center"
+                                            Text="{Binding OriginalName}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </syncfusion:GridTemplateColumn.CellTemplate>
+                        </syncfusion:GridTemplateColumn>
+                        <syncfusion:GridTextColumn
+                            AllowBlankFilters="False"
+                            HeaderText="拡張子"
+                            MappingName="OriginalExtension" />
+                        <syncfusion:GridTextColumn
+                            AllowBlankFilters="False"
+                            AllowEditing="True"
+                            HeaderText="新しい名前"
+                            MappingName="NewName">
+                            <syncfusion:GridTextColumn.HeaderTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="/Assets/#Segoe Fluent Icons"
+                                            Text="&#xe70f;" />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            FontWeight="DemiBold"
+                                            IsHitTestVisible="False"
+                                            Text="新しい名前" />
+                                    </StackPanel>
+
+                                </DataTemplate>
+                            </syncfusion:GridTextColumn.HeaderTemplate>
+
+                            <syncfusion:GridTextColumn.CellStyle>
+                                <Style BasedOn="{StaticResource SyncfusionGridCellStyle}" TargetType="syncfusion:GridCell">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding NameEdited}" Value="True">
+                                            <Setter Property="Background" Value="#446495fd" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding HasError}" Value="True">
+                                            <Setter Property="Background" Value="#55ff6347" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Duplicated}" Value="True">
+                                            <Setter Property="Background" Value="#55ff6347" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </syncfusion:GridTextColumn.CellStyle>
+                        </syncfusion:GridTextColumn>
+                        <syncfusion:GridTextColumn
+                            AllowBlankFilters="False"
+                            AllowEditing="True"
+                            HeaderText="新しい拡張子"
+                            MappingName="NewExtension">
+                            <syncfusion:GridTextColumn.HeaderTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="/Assets/#Segoe Fluent Icons"
+                                            Text="&#xe70f;" />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            FontWeight="DemiBold"
+                                            IsHitTestVisible="False"
+                                            Text="新しい拡張子" />
+                                    </StackPanel>
+
+                                </DataTemplate>
+                            </syncfusion:GridTextColumn.HeaderTemplate>
+                            <syncfusion:GridTextColumn.CellStyle>
+                                <Style BasedOn="{StaticResource SyncfusionGridCellStyle}" TargetType="syncfusion:GridCell">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ExtensionEdited}" Value="True">
+                                            <Setter Property="Background" Value="#446495fd" />
+
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding HasError}" Value="True">
+                                            <Setter Property="Background" Value="#55ff6347" />
+
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Duplicated}" Value="True">
+                                            <Setter Property="Background" Value="#55ff6347" />
+
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </syncfusion:GridTextColumn.CellStyle>
+                        </syncfusion:GridTextColumn>
+
+                        <syncfusion:GridDateTimeColumn
+                            AllowBlankFilters="False"
+                            ColumnSizer="SizeToCells"
+                            CustomPattern="yyyy/MM/dd H:mm"
+                            HeaderText="作成日"
+                            MappingName="CreationTime"
+                            Pattern="CustomPattern">
+                            <syncfusion:GridDateTimeColumn.CellStyle>
+                                <Style BasedOn="{StaticResource SyncfusionGridCellStyle}" TargetType="syncfusion:GridCell">
+                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                                </Style>
+                            </syncfusion:GridDateTimeColumn.CellStyle>
+                        </syncfusion:GridDateTimeColumn>
+                        <syncfusion:GridDateTimeColumn
+                            AllowBlankFilters="False"
+                            ColumnSizer="SizeToCells"
+                            CustomPattern="yyyy/MM/dd H:mm"
+                            HeaderText="更新日"
+                            MappingName="LastWriteTime"
+                            Pattern="CustomPattern">
+                            <syncfusion:GridDateTimeColumn.CellStyle>
+                                <Style BasedOn="{StaticResource SyncfusionGridCellStyle}" TargetType="syncfusion:GridCell">
+                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                                </Style>
+                            </syncfusion:GridDateTimeColumn.CellStyle>
+                        </syncfusion:GridDateTimeColumn>
+                    </syncfusion:SfDataGrid.Columns>
+                </syncfusion:SfDataGrid>
+                <controls:FilterStatusBar
+                    x:Name="FilterStatusBar"
+                    Grid.Row="1"
+                    DataGrid="{Binding ElementName=DataGrid, UpdateSourceTrigger=PropertyChanged}"
+                    Visibility="Visible" />
+            </Grid>
+
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ItemsSource.Count, ElementName=DataGrid}" Value="0">
+                            <Setter Property="Visibility" Value="Hidden" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+
+        </Grid>
+
+
+
+        <Grid>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock
+                    Margin="8"
+                    HorizontalAlignment="Center"
+                    FontSize="20"
+                    Text="ここにフォルダー・ファイルをドラッグ＆ドロップしてください">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock HorizontalAlignment="Center" Text="または">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <Button
+                    x:Name="OpenFilesDialogButton"
+                    Width="140"
+                    Height="24"
+                    Margin="8"
+                    Click="OpenFilesDialogButton_OnClick"
+                    Content="ファイルを選択..." />
+                <GroupBox
+                    Width="200"
+                    Margin="8"
+                    Padding="4"
+                    HorizontalAlignment="Center"
+                    Header="検索条件">
+                    <StackPanel>
+                        <Label Margin="0,8,0,0" Content="検索パターン" />
+                        <TextBox Height="24" Text="{Binding SearchPattern}" />
+
+                        <Label Margin="0,8,0,0" Content="検索場所" />
+                        <ComboBox
+                            Height="24"
+                            Margin="0,2,0,0"
+                            ItemsSource="{converters:EnumValues Type=io:SearchOption}"
+                            SelectedItem="{Binding SearchOption}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock VerticalAlignment="Center" Text="{Binding Converter={StaticResource EnumDisplayNameConverter}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <CheckBox
+                            Margin="0,20,0,0"
+                            Content="隠しファイルを含める"
+                            IsChecked="{Binding IncludesHiddenFiles}" />
+                        <CheckBox
+                            Margin="0,8,0,0"
+                            Content="読み取り専用ファイルを含める"
+                            IsChecked="{Binding IncludesReadOnlyFiles}" />
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ItemsSource.Count, ElementName=DataGrid}" Value="0">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+        </Grid>
+    </Grid>
+</syncfusion:ChromelessWindow>
